@@ -309,18 +309,16 @@ function renderCard(s) {
     <div class="bono-strip">
       <span>Firmas: <span class="bval">${s.firmas !== null ? s.firmas : '0'}</span></span>
       <span>Bonos: <span class="bval">${bonos}</span></span>
-      <span>SALA con bono: <span class="bval">${fmt1(s.conBono)}</span></span>
       <span>Para aprobar: <span class="bval">${falt}</span></span>
     </div>
   </div>`;
 }
 
 // ── Índices de columna en la hoja "Corte 3" (base 0) ─────────────────
-// Fila 8 en adelante son datos. Columnas:
 // A(0)=id, C(2)=nombre, E(4)=q1, F(5)=q2, G(6)=nq,
 // H(7)=t1, I(8)=t2, J(9)=nt, K(10)=parc, L(11)=np,
-// M(12)=firmas, N(13)=bonos, O(14)=def, P(15)=sala, Q(16)=falta, R(17)=conBono
-const CI = { id:0, nombre:2, q1:4, q2:5, nq:6, t1:7, t2:8, nt:9, parc:10, np:11, firmas:12, bonos:13, def:14, sala:15, falta:16, conBono:17 };
+// M(12)=firmas, N(13)=bonos, O(14)=def, P(15)=sala, Q(16)=falta
+const CI = { id:0, nombre:2, q1:4, q2:5, nq:6, t1:7, t2:8, nt:9, parc:10, np:11, firmas:12, bonos:13, def:14, sala:15, falta:16 };
 const DATA_START_ROW = 7; // índice base 0 → fila 8 del Excel
 
 let DATA   = [];
@@ -386,7 +384,6 @@ async function loadExcel() {
           def:     n(row[CI.def]),
           sala:    n(row[CI.sala]),
           falta:   falta,
-          conBono: n(row[CI.conBono]),
         };
       })
       .filter(s => s.id);
