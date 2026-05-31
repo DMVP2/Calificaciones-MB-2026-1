@@ -7,10 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Oxanium:wght@300;400;600;800&display=swap" rel="stylesheet" />
-  <!-- SheetJS para leer el Excel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    /* ── CSS Variables ─────────────────────────────────────────── */
     :root {
       --bg:       #050a05;
       --bg2:      #0a0f0a;
@@ -28,364 +26,128 @@
       --font-mono: 'Share Tech Mono', monospace;
       --font-main: 'Oxanium', sans-serif;
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
-
     body {
-      background: var(--bg);
-      color: var(--white);
-      font-family: var(--font-main);
-      min-height: 100vh;
-      overflow-x: hidden;
-      cursor: none;
+      background: var(--bg); color: var(--white);
+      font-family: var(--font-main); min-height: 100vh;
+      overflow-x: hidden; cursor: none;
     }
-
-    /* ── Custom cursor ──────────────────────────────────────────── */
     .cursor {
-      position: fixed; top: 0; left: 0;
-      width: 12px; height: 12px;
-      background: var(--green);
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 9999;
-      box-shadow: var(--glow-g);
-      transition: transform 0.1s, background 0.2s;
-      transform: translate(-50%, -50%);
+      position: fixed; top: 0; left: 0; width: 12px; height: 12px;
+      background: var(--green); border-radius: 50%; pointer-events: none;
+      z-index: 9999; box-shadow: var(--glow-g);
+      transition: transform 0.1s, background 0.2s; transform: translate(-50%, -50%);
     }
     .cursor-ring {
-      position: fixed; top: 0; left: 0;
-      width: 36px; height: 36px;
-      border: 1px solid var(--green);
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 9998;
-      opacity: 0.5;
-      transform: translate(-50%, -50%);
+      position: fixed; top: 0; left: 0; width: 36px; height: 36px;
+      border: 1px solid var(--green); border-radius: 50%; pointer-events: none;
+      z-index: 9998; opacity: 0.5; transform: translate(-50%, -50%);
       transition: transform 0.15s ease, width 0.2s, height 0.2s, border-color 0.2s;
     }
-
-    /* ── Scanline overlay ───────────────────────────────────────── */
     body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent, transparent 2px,
-        rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px
-      );
-      pointer-events: none;
-      z-index: 100;
+      content: ''; position: fixed; inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px);
+      pointer-events: none; z-index: 100;
     }
-
-    /* ── Grid background ────────────────────────────────────────── */
     .grid-bg {
       position: fixed; inset: 0;
-      background-image:
-        linear-gradient(rgba(0,255,136,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,255,136,0.04) 1px, transparent 1px);
-      background-size: 48px 48px;
-      pointer-events: none;
-      z-index: 0;
+      background-image: linear-gradient(rgba(0,255,136,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,136,0.04) 1px, transparent 1px);
+      background-size: 48px 48px; pointer-events: none; z-index: 0;
     }
-
-    /* ── Ambient blobs ──────────────────────────────────────────── */
-    .blob {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.12;
-      pointer-events: none;
-      z-index: 0;
-      animation: drift 18s ease-in-out infinite alternate;
-    }
+    .blob { position: fixed; border-radius: 50%; filter: blur(80px); opacity: 0.12; pointer-events: none; z-index: 0; animation: drift 18s ease-in-out infinite alternate; }
     .blob-1 { width:500px; height:500px; background:var(--green); top:-100px; left:-100px; animation-duration:20s; }
     .blob-2 { width:400px; height:400px; background:var(--orange); bottom:-100px; right:-100px; animation-duration:24s; }
     .blob-3 { width:350px; height:350px; background:var(--blue); top:40%; left:50%; animation-duration:16s; }
-
-    @keyframes drift {
-      0%   { transform: translate(0,0) scale(1); }
-      100% { transform: translate(40px,30px) scale(1.08); }
-    }
-
-    /* ── Layout ─────────────────────────────────────────────────── */
+    @keyframes drift { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(40px,30px) scale(1.08); } }
     main { position: relative; z-index: 1; }
-
-    /* ── Header ─────────────────────────────────────────────────── */
-    header {
-      padding: 60px 24px 40px;
-      text-align: center;
-      position: relative;
-    }
+    header { padding: 60px 24px 40px; text-align: center; position: relative; }
     .badge {
-      display: inline-block;
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      color: var(--green);
-      border: 1px solid var(--green);
-      padding: 4px 14px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      margin-bottom: 20px;
-      box-shadow: var(--glow-g);
-      animation: pulse-border 3s ease-in-out infinite;
+      display: inline-block; font-family: var(--font-mono); font-size: 0.7rem;
+      color: var(--green); border: 1px solid var(--green); padding: 4px 14px;
+      letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 20px;
+      box-shadow: var(--glow-g); animation: pulse-border 3s ease-in-out infinite;
     }
-    @keyframes pulse-border {
-      0%, 100% { box-shadow: var(--glow-g); }
-      50% { box-shadow: 0 0 16px #00ff88, 0 0 40px #00ff8844; }
-    }
-    h1 {
-      font-size: clamp(2rem,6vw,4.2rem);
-      font-weight: 800;
-      line-height: 1.05;
-      letter-spacing: -0.02em;
-      text-transform: uppercase;
-    }
+    @keyframes pulse-border { 0%, 100% { box-shadow: var(--glow-g); } 50% { box-shadow: 0 0 16px #00ff88, 0 0 40px #00ff8844; } }
+    h1 { font-size: clamp(2rem,6vw,4.2rem); font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; text-transform: uppercase; }
     h1 .line-green { color: var(--green); text-shadow: var(--glow-g); }
     h1 .line-white { color: var(--white); }
-    .subtitle {
-      margin-top: 16px;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      color: #6a9a7a;
-      letter-spacing: 0.1em;
-    }
+    .subtitle { margin-top: 16px; font-family: var(--font-mono); font-size: 0.85rem; color: #6a9a7a; letter-spacing: 0.1em; }
     .subtitle span { color: var(--blue); }
-
-    /* ── Divider ────────────────────────────────────────────────── */
-    .divider {
-      display: flex; align-items: center; gap: 16px;
-      max-width: 700px; margin: 40px auto;
-      padding: 0 24px;
-    }
-    .divider::before, .divider::after {
-      content: ''; flex: 1; height: 1px;
-    }
+    .divider { display: flex; align-items: center; gap: 16px; max-width: 700px; margin: 40px auto; padding: 0 24px; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; }
     .divider::before { background: linear-gradient(90deg, transparent, var(--orange)); }
     .divider::after  { background: linear-gradient(90deg, var(--orange), transparent); }
-    .divider-icon {
-      width: 8px; height: 8px;
-      background: var(--orange);
-      transform: rotate(45deg);
-      box-shadow: var(--glow-o);
-      flex-shrink: 0;
-    }
-
-    /* ── Status bar ─────────────────────────────────────────────── */
+    .divider-icon { width: 8px; height: 8px; background: var(--orange); transform: rotate(45deg); box-shadow: var(--glow-o); flex-shrink: 0; }
     #statusBar {
-      max-width: 600px;
-      margin: 0 auto 16px;
-      padding: 0 24px;
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      letter-spacing: 0.12em;
-      text-align: center;
-      min-height: 20px;
-      transition: color 0.3s;
+      max-width: 600px; margin: 0 auto 16px; padding: 0 24px;
+      font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.12em;
+      text-align: center; min-height: 20px; transition: color 0.3s;
     }
     #statusBar.loading { color: var(--blue); }
     #statusBar.ready   { color: var(--green-dim); }
     #statusBar.error   { color: var(--orange); }
-
-    /* ── Search box ─────────────────────────────────────────────── */
-    .search-section {
-      max-width: 600px;
-      margin: 0 auto 48px;
-      padding: 0 24px;
-      text-align: center;
-    }
-    .search-label {
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      color: var(--blue);
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-      display: block;
-    }
-    .search-wrap {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-    .search-prompt {
-      font-family: var(--font-mono);
-      font-size: 1rem;
-      color: var(--green);
-      padding: 0 0 0 18px;
-      position: absolute;
-      pointer-events: none;
-      text-shadow: var(--glow-g);
-    }
+    .search-section { max-width: 600px; margin: 0 auto 48px; padding: 0 24px; text-align: center; }
+    .search-label { font-family: var(--font-mono); font-size: 0.75rem; color: var(--blue); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 12px; display: block; }
+    .search-wrap { position: relative; display: flex; align-items: center; }
+    .search-prompt { font-family: var(--font-mono); font-size: 1rem; color: var(--green); padding: 0 0 0 18px; position: absolute; pointer-events: none; text-shadow: var(--glow-g); }
     #searchInput {
-      width: 100%;
-      background: rgba(0,255,136,0.04);
-      border: 1px solid var(--green);
-      border-radius: 0;
-      color: var(--green);
-      font-family: var(--font-mono);
-      font-size: 1.1rem;
-      padding: 14px 14px 14px 42px;
-      outline: none;
-      letter-spacing: 0.1em;
-      box-shadow: inset 0 0 20px rgba(0,255,136,0.05), var(--glow-g);
-      transition: box-shadow 0.3s, background 0.3s;
-      caret-color: var(--green);
+      width: 100%; background: rgba(0,255,136,0.04); border: 1px solid var(--green);
+      border-radius: 0; color: var(--green); font-family: var(--font-mono);
+      font-size: 1.1rem; padding: 14px 14px 14px 42px; outline: none;
+      letter-spacing: 0.1em; box-shadow: inset 0 0 20px rgba(0,255,136,0.05), var(--glow-g);
+      transition: box-shadow 0.3s, background 0.3s; caret-color: var(--green);
     }
-    #searchInput:focus {
-      background: rgba(0,255,136,0.08);
-      box-shadow: inset 0 0 30px rgba(0,255,136,0.1), 0 0 20px #00ff8866, 0 0 60px #00ff8822;
-    }
+    #searchInput:focus { background: rgba(0,255,136,0.08); box-shadow: inset 0 0 30px rgba(0,255,136,0.1), 0 0 20px #00ff8866, 0 0 60px #00ff8822; }
     #searchInput::placeholder { color: #2a5a3a; }
-    #searchInput:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    /* ── Result card ─────────────────────────────────────────────── */
-    #result {
-      max-width: 660px;
-      margin: 0 auto 64px;
-      padding: 0 24px;
-      display: none;
-    }
+    #searchInput:disabled { opacity: 0.4; cursor: not-allowed; }
+    #result { max-width: 660px; margin: 0 auto 64px; padding: 0 24px; display: none; }
     #result.visible { display: block; animation: fadeUp 0.4s ease; }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .card {
-      border: 1px solid #1a3020;
-      background: rgba(5,15,8,0.9);
-      padding: 0;
-      overflow: hidden;
-      position: relative;
-    }
-    .card::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, var(--green), var(--blue), var(--orange));
-    }
-
-    .card-header {
-      padding: 24px 28px 20px;
-      border-bottom: 1px solid #0d2010;
-      display: flex; justify-content: space-between; align-items: flex-start;
-      flex-wrap: wrap; gap: 12px;
-    }
-    .student-name {
-      font-size: 1.15rem; font-weight: 600;
-      color: var(--white); letter-spacing: 0.05em;
-    }
-    .student-id {
-      font-family: var(--font-mono); font-size: 0.8rem;
-      color: var(--green); margin-top: 4px;
-    }
-    .corte-badge {
-      font-family: var(--font-mono); font-size: 0.7rem;
-      color: var(--orange); border: 1px solid var(--orange);
-      padding: 4px 12px; letter-spacing: 0.15em;
-      box-shadow: var(--glow-o);
-    }
-
-    /* ── Scores grid ─────────────────────────────────────────────── */
-    .scores-grid {
-      display: grid; grid-template-columns: 1fr 1fr 1fr;
-      border-bottom: 1px solid #0d2010;
-    }
-    .score-block {
-      padding: 20px 22px;
-      border-right: 1px solid #0d2010;
-      position: relative; overflow: hidden;
-    }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .card { border: 1px solid #1a3020; background: rgba(5,15,8,0.9); padding: 0; overflow: hidden; position: relative; }
+    .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--green), var(--blue), var(--orange)); }
+    .card-header { padding: 24px 28px 20px; border-bottom: 1px solid #0d2010; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+    .student-name { font-size: 1.15rem; font-weight: 600; color: var(--white); letter-spacing: 0.05em; }
+    .student-id { font-family: var(--font-mono); font-size: 0.8rem; color: var(--green); margin-top: 4px; }
+    .corte-badge { font-family: var(--font-mono); font-size: 0.7rem; color: var(--orange); border: 1px solid var(--orange); padding: 4px 12px; letter-spacing: 0.15em; box-shadow: var(--glow-o); }
+    .scores-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; border-bottom: 1px solid #0d2010; }
+    .score-block { padding: 20px 22px; border-right: 1px solid #0d2010; position: relative; overflow: hidden; }
     .score-block:last-child { border-right: none; }
-    .score-label {
-      font-family: var(--font-mono); font-size: 0.65rem;
-      letter-spacing: 0.15em; text-transform: uppercase;
-      color: #5a7a60; margin-bottom: 8px;
-    }
+    .score-label { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: #5a7a60; margin-bottom: 8px; }
     .score-value { font-size: 1.8rem; font-weight: 800; line-height: 1; }
-    .score-weight {
-      font-family: var(--font-mono); font-size: 0.65rem;
-      color: #4a6a50; margin-top: 6px;
-    }
+    .score-weight { font-family: var(--font-mono); font-size: 0.65rem; color: #4a6a50; margin-top: 6px; }
     .col-green .score-value { color: var(--green); text-shadow: var(--glow-g); }
     .col-blue  .score-value { color: var(--blue);  text-shadow: var(--glow-b); }
     .col-orange .score-value { color: var(--orange); text-shadow: var(--glow-o); }
-
-    /* ── Items breakdown ─────────────────────────────────────────── */
     .breakdown { padding: 20px 28px; border-bottom: 1px solid #0d2010; }
-    .breakdown-title {
-      font-family: var(--font-mono); font-size: 0.65rem;
-      color: #5a7a60; letter-spacing: 0.2em;
-      text-transform: uppercase; margin-bottom: 14px;
-    }
-    .item-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 7px 0; border-bottom: 1px solid #0d180f; font-size: 0.88rem;
-    }
+    .breakdown-title { font-family: var(--font-mono); font-size: 0.65rem; color: #5a7a60; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 14px; }
+    .item-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #0d180f; font-size: 0.88rem; }
     .item-row:last-child { border-bottom: none; }
     .item-name { color: #8aaa8a; }
     .item-val { font-family: var(--font-mono); font-size: 0.9rem; font-weight: 600; }
     .item-val.v-green  { color: var(--green); }
     .item-val.v-blue   { color: var(--blue); }
     .item-val.v-orange { color: var(--orange); }
-
     .bar-wrap { width:80px; height:4px; background:#0d180f; margin-left:16px; flex-shrink:0; }
     .bar-fill { height:100%; transition: width 0.8s ease; }
     .bar-green  { background:var(--green); box-shadow:var(--glow-g); }
     .bar-blue   { background:var(--blue);  box-shadow:var(--glow-b); }
     .bar-orange { background:var(--orange); box-shadow:var(--glow-o); }
-
-    /* ── Finals ──────────────────────────────────────────────────── */
     .finals { display: grid; grid-template-columns: 1fr 1fr; }
-    .final-block {
-      padding: 24px 28px;
-      border-right: 1px solid #0d2010; text-align: center;
-    }
+    .final-block { padding: 24px 28px; border-right: 1px solid #0d2010; text-align: center; }
     .final-block:last-child { border-right: none; }
-    .final-label {
-      font-family: var(--font-mono); font-size: 0.65rem;
-      letter-spacing: 0.2em; color: #5a7a60;
-      text-transform: uppercase; margin-bottom: 10px;
-    }
+    .final-label { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.2em; color: #5a7a60; text-transform: uppercase; margin-bottom: 10px; }
     .final-big { font-size: 3rem; font-weight: 800; line-height: 1; }
     .final-sala .final-big { color: var(--green); text-shadow: 0 0 12px #00ff88, 0 0 40px #00ff8866; }
     .final-def  .final-big { color: var(--blue);  text-shadow: 0 0 12px #00cfff, 0 0 40px #00cfff66; }
     .final-sub { font-family: var(--font-mono); font-size: 0.7rem; margin-top: 6px; }
     .final-sala .final-sub { color: var(--green-dim); }
     .final-def  .final-sub { color: var(--blue-dim); }
-
-    .bono-strip {
-      padding: 12px 28px;
-      border-top: 1px solid #0d2010;
-      display: flex; justify-content: space-between; align-items: center;
-      font-family: var(--font-mono); font-size: 0.75rem;
-      color: #5a7a60; background: rgba(255,107,0,0.03);
-      flex-wrap: wrap; gap: 8px;
-    }
+    .bono-strip { padding: 12px 28px; border-top: 1px solid #0d2010; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 0.75rem; color: #5a7a60; background: rgba(255,107,0,0.03); flex-wrap: wrap; gap: 8px; }
     .bono-strip .bval { color:var(--orange); font-size:0.9rem; font-weight:600; }
-
-    /* ── Not found ───────────────────────────────────────────────── */
-    .not-found {
-      text-align: center; padding: 40px 28px;
-      font-family: var(--font-mono); color: var(--orange);
-    }
-
-    /* ── Footer ──────────────────────────────────────────────────── */
-    footer {
-      text-align: center;
-      padding: 32px 24px 48px;
-      border-top: 1px solid #0d180f;
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      color: #2a4a2a;
-      position: relative; z-index: 1;
-    }
+    .not-found { text-align: center; padding: 40px 28px; font-family: var(--font-mono); color: var(--orange); }
+    footer { text-align: center; padding: 32px 24px 48px; border-top: 1px solid #0d180f; font-family: var(--font-mono); font-size: 0.7rem; color: #2a4a2a; position: relative; z-index: 1; }
     footer span { color: #4a6a50; }
-
-    /* ── Responsive ──────────────────────────────────────────────── */
     @media (max-width: 600px) {
       .scores-grid { grid-template-columns: 1fr 1fr; }
       .scores-grid .score-block:nth-child(3) { grid-column: 1 / -1; }
@@ -397,19 +159,14 @@
   </style>
 </head>
 <body>
-
-<!-- Cursor -->
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
-
-<!-- Backgrounds -->
 <div class="grid-bg"></div>
 <div class="blob blob-1"></div>
 <div class="blob blob-2"></div>
 <div class="blob blob-3"></div>
 
 <main>
-  <!-- ── Header ──────────────────────────────────────────────────── -->
   <header>
     <div class="badge">CORTE 3 · 2026-1</div>
     <h1>
@@ -423,13 +180,10 @@
     </p>
   </header>
 
-  <!-- ── Divider ─────────────────────────────────────────────────── -->
   <div class="divider"><div class="divider-icon"></div></div>
 
-  <!-- ── Status bar ─────────────────────────────────────────────── -->
   <div id="statusBar" class="loading">&gt;_ cargando planilla...</div>
 
-  <!-- ── Search ──────────────────────────────────────────────────── -->
   <section class="search-section">
     <span class="search-label">// consulta tu nota</span>
     <div class="search-wrap">
@@ -445,7 +199,6 @@
     </div>
   </section>
 
-  <!-- ── Result ──────────────────────────────────────────────────── -->
   <div id="result"></div>
 </main>
 
@@ -455,30 +208,27 @@
 </footer>
 
 <script>
-// ── Helpers ──────────────────────────────────────────────────────────
-const fmt  = v => (v !== null && v !== undefined && v !== '') ? parseFloat(v).toFixed(2) : '—';
-const fmt3 = v => (v !== null && v !== undefined && v !== '') ? parseFloat(v).toFixed(3) : '—';
-const fmt1 = v => (v !== null && v !== undefined && v !== '') ? parseFloat(v).toFixed(1)  : '—';
+// ── Helpers ───────────────────────────────────────────────────────────
+function n(v) {
+  // Devuelve número o null. Ignora strings de error de Excel.
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v === 'string' && (v.includes('#') || v.trim() === '')) return null;
+  const p = parseFloat(v);
+  return isNaN(p) ? null : p;
+}
+const fmt  = v => v !== null ? v.toFixed(2) : '—';
+const fmt3 = v => v !== null ? v.toFixed(3) : '—';
+const fmt1 = v => v !== null ? v.toFixed(1)  : '—';
 
 function bar(val, max, cls) {
-  const pct = (val !== null && val !== undefined && val !== '') ? Math.min(100, (parseFloat(val) / max) * 100) : 0;
+  const pct = val !== null ? Math.min(100, (val / max) * 100) : 0;
   return `<div class="bar-wrap"><div class="bar-fill ${cls}" style="width:${pct}%"></div></div>`;
 }
 
-// ── Render result card ────────────────────────────────────────────────
 function renderCard(s) {
-  const nq   = fmt3(s.nq);
-  const nt   = fmt3(s.nt);
-  const np   = fmt3(s.np);
-  const def  = fmt(s.def);
-  const sala = fmt1(s.sala);
-  const cb   = fmt1(s.conBono);
-  const falt = (s.falta !== null && s.falta !== undefined && s.falta !== '')
-    ? (s.falta === 'No aplica' ? 'No aplica' : parseFloat(s.falta).toFixed(2))
-    : '—';
-  const bonos = (s.bonos && parseFloat(s.bonos) > 0)
-    ? '+' + parseFloat(s.bonos).toFixed(2)
-    : '0.00';
+  const bonos  = s.bonos !== null && s.bonos > 0 ? '+' + s.bonos.toFixed(2) : '0.00';
+  const falt   = s.falta === 'No aplica' ? 'No aplica'
+               : s.falta !== null ? s.falta.toFixed(2) : '—';
 
   return `
   <div class="card">
@@ -489,186 +239,161 @@ function renderCard(s) {
       </div>
       <div class="corte-badge">CORTE 3</div>
     </div>
-
     <div class="scores-grid">
       <div class="score-block col-green">
         <div class="score-label">Quices</div>
-        <div class="score-value">${nq}</div>
+        <div class="score-value">${fmt3(s.nq)}</div>
         <div class="score-weight">Peso × 0.10</div>
       </div>
       <div class="score-block col-blue">
         <div class="score-label">Talleres</div>
-        <div class="score-value">${nt}</div>
+        <div class="score-value">${fmt3(s.nt)}</div>
         <div class="score-weight">Peso × 0.40</div>
       </div>
       <div class="score-block col-orange">
         <div class="score-label">Parcial</div>
-        <div class="score-value">${np}</div>
+        <div class="score-value">${fmt3(s.np)}</div>
         <div class="score-weight">Peso × 0.50</div>
       </div>
     </div>
-
     <div class="breakdown">
       <div class="breakdown-title">// desglose de ítems</div>
       <div class="item-row">
         <span class="item-name">Quiz 1 <small style="color:#3a6a3a">(×0.35)</small></span>
         <div style="display:flex;align-items:center">
           <span class="item-val v-green">${fmt(s.q1)}</span>
-          ${s.q1!==null&&s.q1!==''?bar(s.q1,5,'bar-green'):''}
+          ${s.q1!==null?bar(s.q1,5,'bar-green'):''}
         </div>
       </div>
       <div class="item-row">
         <span class="item-name">Quiz 2 <small style="color:#3a6a3a">(×0.65)</small></span>
         <div style="display:flex;align-items:center">
           <span class="item-val v-green">${fmt(s.q2)}</span>
-          ${s.q2!==null&&s.q2!==''?bar(s.q2,5,'bar-green'):''}
+          ${s.q2!==null?bar(s.q2,5,'bar-green'):''}
         </div>
       </div>
       <div class="item-row">
         <span class="item-name">Taller 1</span>
         <div style="display:flex;align-items:center">
           <span class="item-val v-blue">${fmt(s.t1)}</span>
-          ${s.t1!==null&&s.t1!==''?bar(s.t1,5,'bar-blue'):''}
+          ${s.t1!==null?bar(s.t1,5,'bar-blue'):''}
         </div>
       </div>
       <div class="item-row">
         <span class="item-name">Taller 2</span>
         <div style="display:flex;align-items:center">
           <span class="item-val v-blue">${fmt(s.t2)}</span>
-          ${s.t2!==null&&s.t2!==''?bar(s.t2,5,'bar-blue'):''}
+          ${s.t2!==null?bar(s.t2,5,'bar-blue'):''}
         </div>
       </div>
       <div class="item-row">
         <span class="item-name">Parcial</span>
         <div style="display:flex;align-items:center">
           <span class="item-val v-orange">${fmt(s.parc)}</span>
-          ${s.parc!==null&&s.parc!==''?bar(s.parc,5,'bar-orange'):''}
+          ${s.parc!==null?bar(s.parc,5,'bar-orange'):''}
         </div>
       </div>
     </div>
-
     <div class="finals">
       <div class="final-block final-def">
         <div class="final-label">// definitiva</div>
-        <div class="final-big">${def}</div>
+        <div class="final-big">${fmt(s.def)}</div>
         <div class="final-sub">nota calculada</div>
       </div>
       <div class="final-block final-sala">
         <div class="final-label">// nota a sala</div>
-        <div class="final-big">${sala}</div>
+        <div class="final-big">${fmt1(s.sala)}</div>
         <div class="final-sub">sistema SALA</div>
       </div>
     </div>
-
     <div class="bono-strip">
-      <span>Firmas acumuladas: <span class="bval">${s.firmas || '0'}</span></span>
+      <span>Firmas: <span class="bval">${s.firmas !== null ? s.firmas : '0'}</span></span>
       <span>Bonos: <span class="bval">${bonos}</span></span>
-      <span>SALA con bono: <span class="bval">${cb}</span></span>
+      <span>SALA con bono: <span class="bval">${fmt1(s.conBono)}</span></span>
       <span>Para aprobar: <span class="bval">${falt}</span></span>
     </div>
   </div>`;
 }
 
-// ── Column mapping: nombres de columnas en el Excel → campos internos ──
-// Ajusta los nombres según los encabezados EXACTOS de tu hoja "Corte 3"
-const COL_MAP = {
-  // Documento del estudiante  (columna A o similar)
-  'documento'    : 'id',
-  'cedula'       : 'id',
-  'id'           : 'id',
-  'no. documento': 'id',
-  // Nombre
-  'nombre'       : 'nombre',
-  'estudiante'   : 'nombre',
-  'nombres'      : 'nombre',
-  // Quices
-  'quiz 1'       : 'q1',
-  'quiz1'        : 'q1',
-  'q1'           : 'q1',
-  'quiz 2'       : 'q2',
-  'quiz2'        : 'q2',
-  'q2'           : 'q2',
-  'nota quices'  : 'nq',
-  'nq'           : 'nq',
-  // Talleres
-  'taller 1'     : 't1',
-  'taller1'      : 't1',
-  't1'           : 't1',
-  'taller 2'     : 't2',
-  'taller2'      : 't2',
-  't2'           : 't2',
-  'nota talleres': 'nt',
-  'nt'           : 'nt',
-  // Parcial
-  'parcial'      : 'parc',
-  'parc'         : 'parc',
-  'nota parcial' : 'np',
-  'np'           : 'np',
-  // Firmas / Bonos
-  'firmas'       : 'firmas',
-  'bonos'        : 'bonos',
-  // Definitiva / SALA / Para aprobar / Con bono
-  'definitiva'   : 'def',
-  'def'          : 'def',
-  'nota sala'    : 'sala',
-  'sala'         : 'sala',
-  'para aprobar' : 'falta',
-  'falta'        : 'falta',
-  'con bono'     : 'conBono',
-  'sala con bono': 'conBono',
-  'conbono'      : 'conBono',
-};
+// ── Índices de columna en la hoja "Corte 3" (base 0) ─────────────────
+// Fila 8 en adelante son datos. Columnas:
+// A(0)=id, C(2)=nombre, E(4)=q1, F(5)=q2, G(6)=nq,
+// H(7)=t1, I(8)=t2, J(9)=nt, K(10)=parc, L(11)=np,
+// M(12)=firmas, N(13)=bonos, O(14)=def, P(15)=sala, Q(16)=falta, R(17)=conBono
+const CI = { id:0, nombre:2, q1:4, q2:5, nq:6, t1:7, t2:8, nt:9, parc:10, np:11, firmas:12, bonos:13, def:14, sala:15, falta:16, conBono:17 };
+const DATA_START_ROW = 7; // índice base 0 → fila 8 del Excel
 
-// ── Estado global ─────────────────────────────────────────────────────
-let DATA = [];
+let DATA   = [];
 let LOADED = false;
 
-// ── Cargar Excel ──────────────────────────────────────────────────────
 async function loadExcel() {
   const status = document.getElementById('statusBar');
   const input  = document.getElementById('searchInput');
 
   try {
-    // El archivo debe llamarse exactamente así (mismo directorio que index.html)
-    const FILENAME = 'Corte 3.xlsx';
     status.className = 'loading';
     status.textContent = '>_ conectando con la planilla...';
 
+    // El archivo debe subirse con este nombre exacto al repositorio
+    const FILENAME = 'Corte_3.xlsx';
     const resp = await fetch(FILENAME);
-    if (!resp.ok) throw new Error(`No se pudo cargar "${FILENAME}" (HTTP ${resp.status})`);
+    if (!resp.ok) throw new Error(`No se encontró "${FILENAME}" (HTTP ${resp.status})`);
 
     const buffer = await resp.arrayBuffer();
-    const wb = XLSX.read(buffer, { type: 'array' });
+    const wb = XLSX.read(buffer, { type: 'array', cellText: false, cellDates: true });
 
-    // Buscar la hoja "Corte 3"
-    const sheetName = wb.SheetNames.find(n => n.trim().toLowerCase() === 'corte 3');
-    if (!sheetName) {
-      throw new Error(`Hoja "Corte 3" no encontrada. Hojas disponibles: ${wb.SheetNames.join(', ')}`);
-    }
+    // Buscar hoja "Corte 3" (tolerante a espacios)
+    const sheetName = wb.SheetNames.find(n => n.trim() === 'Corte 3');
+    if (!sheetName) throw new Error(`Hoja "Corte 3" no encontrada. Disponibles: ${wb.SheetNames.join(', ')}`);
 
     const ws   = wb.Sheets[sheetName];
-    const rows = XLSX.utils.sheet_to_json(ws, { defval: null, raw: false });
+    // sheet_to_json con header:1 → array de arrays (sin interpretar encabezados)
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, raw: true });
 
-    // Mapear columnas del Excel → campos internos
-    DATA = rows.map(row => {
-      const s = { id:'', nombre:'', q1:null, q2:null, nq:null,
-                  t1:null, t2:null, nt:null, parc:null, np:null,
-                  firmas:0, bonos:0, def:null, sala:null, falta:null, conBono:null };
+    DATA = rows
+      .slice(DATA_START_ROW) // saltar filas de encabezado
+      .filter(row => row[CI.id] !== null && row[CI.id] !== undefined && row[CI.id] !== '')
+      .map(row => {
+        // Limpiar id: quitar decimales y espacios
+        const rawId = String(row[CI.id]).replace(/\.0+$/, '').trim();
+        // Nombre: limpiar espacio no-breaking
+        const nombre = String(row[CI.nombre] || '').replace(/\xa0/g, '').trim();
 
-      for (const [rawKey, val] of Object.entries(row)) {
-        const key = rawKey.trim().toLowerCase();
-        const field = COL_MAP[key];
-        if (field) s[field] = val;
-      }
+        // falta: puede ser texto "No aplica" o número
+        let falta = null;
+        const rawFalta = row[CI.falta];
+        if (rawFalta !== null && rawFalta !== undefined && rawFalta !== '') {
+          if (typeof rawFalta === 'string' && rawFalta.toLowerCase().includes('aplica')) {
+            falta = 'No aplica';
+          } else {
+            falta = n(rawFalta);
+          }
+        }
 
-      // Convertir id a string limpio
-      s.id = String(s.id || '').replace(/\.0$/, '').trim();
-      return s;
-    }).filter(s => s.id && s.id !== '');
+        return {
+          id:      rawId,
+          nombre:  nombre,
+          q1:      n(row[CI.q1]),
+          q2:      n(row[CI.q2]),
+          nq:      n(row[CI.nq]),
+          t1:      n(row[CI.t1]),
+          t2:      n(row[CI.t2]),
+          nt:      n(row[CI.nt]),
+          parc:    n(row[CI.parc]),
+          np:      n(row[CI.np]),
+          firmas:  n(row[CI.firmas]),
+          bonos:   n(row[CI.bonos]),
+          def:     n(row[CI.def]),
+          sala:    n(row[CI.sala]),
+          falta:   falta,
+          conBono: n(row[CI.conBono]),
+        };
+      })
+      .filter(s => s.id);
 
     LOADED = true;
     status.className = 'ready';
-    status.textContent = `>_ planilla lista · ${DATA.length} estudiantes cargados`;
+    status.textContent = `>_ planilla lista · ${DATA.length} estudiantes`;
     input.disabled = false;
     input.focus();
 
@@ -679,28 +404,22 @@ async function loadExcel() {
   }
 }
 
-// ── Search logic ──────────────────────────────────────────────────────
+// ── Búsqueda ──────────────────────────────────────────────────────────
 document.getElementById('searchInput').addEventListener('input', function() {
   if (!LOADED) return;
-
   const q      = this.value.trim().replace(/\D/g, '');
   const result = document.getElementById('result');
 
-  if (!q || q.length < 4) {
-    result.classList.remove('visible');
-    return;
-  }
+  if (!q || q.length < 4) { result.classList.remove('visible'); return; }
 
   const found = DATA.find(s => s.id === q || s.id.startsWith(q));
   result.classList.add('visible');
 
   if (found) {
     result.innerHTML = renderCard(found);
-    // Animar barras
     setTimeout(() => {
       result.querySelectorAll('.bar-fill').forEach(b => {
-        const w = b.style.width;
-        b.style.width = '0';
+        const w = b.style.width; b.style.width = '0';
         requestAnimationFrame(() => { b.style.width = w; });
       });
     }, 50);
@@ -712,41 +431,18 @@ document.getElementById('searchInput').addEventListener('input', function() {
   }
 });
 
-// ── Custom cursor ─────────────────────────────────────────────────────
+// ── Cursor ────────────────────────────────────────────────────────────
 const cursor = document.getElementById('cursor');
 const ring   = document.getElementById('cursorRing');
-let mx = 0, my = 0, rx = 0, ry = 0;
-
-document.addEventListener('mousemove', e => {
-  mx = e.clientX; my = e.clientY;
-  cursor.style.left = mx + 'px';
-  cursor.style.top  = my + 'px';
-});
-function animRing() {
-  rx += (mx - rx) * 0.12;
-  ry += (my - ry) * 0.12;
-  ring.style.left = rx + 'px';
-  ring.style.top  = ry + 'px';
-  requestAnimationFrame(animRing);
-}
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cursor.style.left=mx+'px'; cursor.style.top=my+'px'; });
+function animRing() { rx+=(mx-rx)*0.12; ry+=(my-ry)*0.12; ring.style.left=rx+'px'; ring.style.top=ry+'px'; requestAnimationFrame(animRing); }
 animRing();
-
 document.querySelectorAll('a,button,input').forEach(el => {
-  el.addEventListener('mouseenter', () => {
-    cursor.style.transform = 'translate(-50%,-50%) scale(2)';
-    ring.style.width = '56px'; ring.style.height = '56px';
-    ring.style.borderColor = 'var(--orange)';
-    cursor.style.background = 'var(--orange)';
-  });
-  el.addEventListener('mouseleave', () => {
-    cursor.style.transform = 'translate(-50%,-50%) scale(1)';
-    ring.style.width = '36px'; ring.style.height = '36px';
-    ring.style.borderColor = 'var(--green)';
-    cursor.style.background = 'var(--green)';
-  });
+  el.addEventListener('mouseenter', () => { cursor.style.transform='translate(-50%,-50%) scale(2)'; ring.style.width='56px'; ring.style.height='56px'; ring.style.borderColor='var(--orange)'; cursor.style.background='var(--orange)'; });
+  el.addEventListener('mouseleave', () => { cursor.style.transform='translate(-50%,-50%) scale(1)'; ring.style.width='36px'; ring.style.height='36px'; ring.style.borderColor='var(--green)'; cursor.style.background='var(--green)'; });
 });
 
-// ── Init ──────────────────────────────────────────────────────────────
 loadExcel();
 </script>
 </body>
